@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Games</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+        :root {
+            --bg-color: #000000;
+            --text-color: #ffffff;
+            --border-color: #ffffff;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: monospace;
+            margin: 0;
+            padding: 20px 15px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            cursor: crosshair;
+        }
+
+        h1 {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 3rem;
+            margin-top: 1.2em;
+            margin-bottom: 35px;
+            text-align: center;
+            width: 100%;
+            letter-spacing: 3px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            flex-grow: 1;
+            margin-bottom: 20px;
+        }
+
+        .rect {
+            width: 100%;
+            height: 55px;
+            border: 2px solid var(--border-color);
+            background-color: transparent;
+            box-sizing: border-box;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1.6rem;
+            color: var(--text-color);
+            letter-spacing: 2px;
+            text-decoration: none;
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+        }
+
+        .rect:active {
+            background-color: var(--text-color);
+            color: var(--bg-color);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+                margin-top: 1.5em;
+                margin-bottom: 25px;
+                letter-spacing: 2px;
+            }
+
+            .container {
+                gap: 20px;
+            }
+
+            .rect {
+                height: 55px;
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Games</h1>
+    
+    <div class="container">
+        <a href="snake.html" class="rect">Snake</a>
+        <a href="tictac.html" class="rect">Tic-Tac-Toe</a>
+        <a href="breakout.html" class="rect">Breakout</a>
+        <a href="index.html" class="rect">Back</a>
+    </div>
+
+</body>
+</html>
