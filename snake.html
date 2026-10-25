@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SNAKKY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    body { background: #000; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: monospace; touch-action: none; }
+    h1 { margin: 0 0 6px 0; font-family: 'Press Start 2P', monospace; font-size: 16px; color: #fff; letter-spacing: 2px; text-shadow: 2px 2px 0px #00ff88; }
+    .hud { font-size: 12px; margin-bottom: 6px; font-weight: bold; color: #888; font-family: 'Press Start 2P', monospace; }
+    .hud span { color: #fff; }
+    canvas { border: 2px solid #222; background: #000; box-shadow: 0 0 20px rgba(0,255,136,0.1); width: 80vw; height: 80vw; max-width: 360px; max-height: 360px; border-radius: 4px; }
+    .controls { display: grid; grid-template-columns: 95px 95px 95px; grid-template-rows: 75px 75px; gap: 12px; margin-top: 14px; justify-content: center; }
+    .btn { background: #111; color: #fff; border: 3px solid #444; font-family: Arial, sans-serif; font-size: 26px; font-weight: bold; border-radius: 14px; display: flex; align-items: center; justify-content: center; user-select: none; box-shadow: 0 5px 0 #000; transition: transform 0.05s; }
+    .btn:active { background: #333; transform: translateY(5px); box-shadow: 0 0 0 #000; }
+    #up { grid-column: 2; grid-row: 1; }
+    #left { grid-column: 1; grid-row: 2; }
+    #down { grid-column: 2; grid-row: 2; }
+    #right { grid-column: 3; grid-row: 2; }
+  </style>
+</head>
+<body>
+  <h1>SNAKKY</h1>
+  <div class="hud">
+    <div>SCORE: <span id="score">0</span></div>
+  </div>
+  <canvas id="game" width="400" height="400"></canvas>
+  <div class="controls">
+    <div class="btn" id="up">&uarr;</div>
+    <div class="btn" id="left">&larr;</div>
+    <div class="btn" id="down">&darr;</div>
+    <div class="btn" id="right">&rarr;</div>
+  </div>
+<script>
+var canvas = document.getElementById('game');
+var context = canvas.getContext('2d');
+var grid = 16;
+var count = 0;
+var score = 1;
+
+var snake = { x: 160, y: 160, dx: grid, dy: 0, cells: [], maxCells: 4 };
+var apple = { x: 320, y: 320 };
+
+var audioCtx = null;
+function playDing() {
+  try {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    var osc = audioCtx.createOscillator();
+    var gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.15);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.15);
+  } catch (e) {}
+}
+
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+
+document.getElementById('up').addEventListener('click', () => { if (snake.dy === 0) { snake.dy = -grid; snake.dx = 0; } });
+document.getElementById('left').addEventListener('click', () => { if (snake.dx === 0) { snake.dx = -grid; snake.dy = 0; } });
+document.getElementById('down').addEventListener('click', () => { if (snake.dy === 0) { snake.dy = grid; snake.dx = 0; } });
+document.getElementById('right').addEventListener('click', () => { if (snake.dx === 0) { snake.dx = grid; snake.dy = 0; } });
+
+document.addEventListener('keydown', function(e) {
+  if (e.which === 37 && snake.dx === 0) { snake.dx = -grid; snake.dy = 0; }
+  else if (e.which === 38 && snake.dy === 0) { snake.dy = -grid; snake.dx = 0; }
+  else if (e.which === 39 && snake.dx === 0) { snake.dx = grid; snake.dy = 0; }
+  else if (e.which === 40 && snake.dy === 0) { snake.dy = grid; snake.dx = 0; }
+});
+
+function loop() {
+  requestAnimationFrame(loop);
+  if (++count < 8) { return; }
+  count = 0;
+  
+  context.clearRect(0, 0, canvas.width, canvas.height);
+
+  context.strokeStyle = '#111111';
+  context.lineWidth = 1;
+  for (let i = 0; i < canvas.width; i += grid) {
+    context.beginPath();
+    context.moveTo(i, 0);
+    context.lineTo(i, canvas.height);
+    context.stroke();
+
+    context.beginPath();
+    context.moveTo(0, i);
+    context.lineTo(canvas.width, i);
+    context.stroke();
+  }
+
+  snake.x += snake.dx;
+  snake.y += snake.dy;
+
+  if (snake.x < 0) { snake.x = canvas.width - grid; }
+  else if (snake.x >= canvas.width) { snake.x = 0; }
+  if (snake.y < 0) { snake.y = canvas.height - grid; }
+  else if (snake.y >= canvas.height) { snake.y = 0; }
+
+  snake.cells.unshift({x: snake.x, y: snake.y});
+  if (snake.cells.length > snake.maxCells) { snake.cells.pop(); }
+
+  context.fillStyle = '#ff2233';
+  context.fillRect(apple.x + 3, apple.y + 4, 10, 10);
+  context.fillStyle = '#ff6677';
+  context.fillRect(apple.x + 4, apple.y + 5, 3, 3);
+  context.fillStyle = '#654321';
+  context.fillRect(apple.x + 7, apple.y + 2, 2, 2);
+  context.fillStyle = '#44cc44';
+  context.fillRect(apple.x + 9, apple.y + 2, 3, 2);
+
+  snake.cells.forEach(function(cell, index) {
+    if (index === 0) {
+      context.fillStyle = '#00bb00';
+      context.fillRect(cell.x, cell.y, grid, grid);
+
+      context.strokeStyle = '#000000';
+      context.lineWidth = 1;
+      context.strokeRect(cell.x, cell.y, grid, grid);
+
+      context.fillStyle = '#000000';
+      if (snake.dx > 0) {
+        context.fillRect(cell.x + 10, cell.y + 3, 3, 3);
+        context.fillRect(cell.x + 10, cell.y + 10, 3, 3);
+      } else if (snake.dx < 0) {
+        context.fillRect(cell.x + 3, cell.y + 3, 3, 3);
+        context.fillRect(cell.x + 3, cell.y + 10, 3, 3);
+      } else if (snake.dy > 0) {
+        context.fillRect(cell.x + 3, cell.y + 10, 3, 3);
+        context.fillRect(cell.x + 10, cell.y + 10, 3, 3);
+      } else {
+        context.fillRect(cell.x + 3, cell.y + 3, 3, 3);
+        context.fillRect(cell.x + 10, cell.y + 3, 3, 3);
+      }
+    } else {
+      context.fillStyle = '#0f0';
+      context.fillRect(cell.x, cell.y, grid, grid);
+
+      context.strokeStyle = '#000000';
+      context.lineWidth = 2;
+      context.strokeRect(cell.x, cell.y, grid, grid);
+    }
+
+    if (cell.x === apple.x && cell.y === apple.y) {
+      snake.maxCells++;
+      score += 1;
+      document.getElementById('score').innerText = score;
+      playDing();
+      apple.x = getRandomInt(0, 25) * grid;
+      apple.y = getRandomInt(0, 25) * grid;
+    }
+  });
+}
+
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
